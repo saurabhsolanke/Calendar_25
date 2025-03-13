@@ -9,29 +9,22 @@ export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-      const router = useRouter();
+    const router = useRouter();
 
-      const navigateToHome = () => {
+    const navigateToHome = () => {
         router.push('/home');
     };
-
+    const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:8000/login', {
-                method: 'POST',
-                credentials: 'include',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password })
-            });
-            console.log(response.data.success);
+            const response = await axios.post(baseurl + '/login', { username, password });
 
             if (response.data.success) {
-                // Store token or user data if needed
-                router.push('/home'); // Redirect to dashboard after login
+                localStorage.setItem('token', response.data.token); // Save token
+                localStorage.setItem('username', response.data.username); // Save token
+                router.push('/home');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
@@ -87,13 +80,13 @@ export default function Login() {
                         Sign in
                     </button>
                 </form>
-                    <button
-                        type="submit" 
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    ><a href="/register">
+                <button
+                    type="submit"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                ><a href="/register">
                         Register
                     </a>
-                    </button>
+                </button>
             </div>
         </div>
     );

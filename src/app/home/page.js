@@ -1,10 +1,10 @@
+// home.js
 'use client';
 import { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import axios from 'axios';
 import { useRef } from 'react';
 import React from 'react';
-
 
 export default function Home() {
   const [calendarData, setCalendarData] = useState(null);
@@ -15,13 +15,22 @@ export default function Home() {
   const [showAddTaskForm, setShowAddTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [editedTaskText, setEditedTaskText] = useState('');
-  const token = localStorage.getItem('token');
+  const [token, setToken] = useState('');
   const BASE_URL1 = process.env.NEXT_PUBLIC_BASE_URL;
+    
+  useEffect(() => {
+    // Safely access localStorage only on the client side
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token') || '');
+    }
+  }, []);
 
   useEffect(() => {
+    // Only run this effect if token is available
+    if (!token) return;
+    
     const fetchCalendarData = async () => {
       try {
-        const token = localStorage.getItem('token');
         const response = await fetch(BASE_URL1 + '/calendar', {
           method: 'GET',
           headers: {
@@ -52,9 +61,11 @@ export default function Home() {
     };
 
     fetchCalendarData();
-  }, []);
+  }, [token, BASE_URL1]);
 
   const handleEditTask = async (taskId, newDescription) => {
+    if (!token) return;
+    
     try {
       const response = await fetch(BASE_URL1 + '/calendar/edit', {
         method: 'PUT',
@@ -70,7 +81,6 @@ export default function Home() {
       });
 
       if (response.status === 200) {
-        const token = localStorage.getItem('token');
         const updatedResponse = await fetch(BASE_URL1 + '/calendar', {
           method: 'GET',
           headers: {
@@ -106,6 +116,7 @@ export default function Home() {
   };
 
   const handleDeleteTask = async (taskId) => {
+    if (!token) return;
     if (!window.confirm('Are you sure you want to delete this task?')) return;
 
     try {
@@ -122,7 +133,6 @@ export default function Home() {
       });
 
       if (response.ok) {
-        const token = localStorage.getItem('token');
         const updatedResponse = await fetch(BASE_URL1 + '/calendar', {
           method: 'GET',
           headers: {
@@ -155,10 +165,10 @@ export default function Home() {
   };
 
   const handleAddTask = async (taskText) => {
+    if (!token) return;
     if (!taskText.trim()) return;
 
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.post(BASE_URL1 + '/calendar/add',
         { date: selectedDate, task: taskText },
         { headers: { Authorization: `Bearer ${token}` } }

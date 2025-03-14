@@ -1,11 +1,23 @@
-import Navbar from "../home/Navbar";
+'use client'; // Add this directive at the top of the file
 
-export default function Page() {
-    return (
+import React, { useEffect, useState } from 'react';
 
-        <div className="">
-            <Navbar />
-            <h1>Hi</h1>
-        </div>
-    )
-  }
+const AboutPage = () => {
+  const [username, setUsername] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedUsername = localStorage.getItem('username');
+      setUsername(storedUsername);
+    }
+  }, []);
+
+  return (
+    <div>
+      <h1>About Page</h1>
+      <p>Welcome, {username || 'Guest'}!</p>
+    </div>
+  );
+};
+
+export default AboutPage;

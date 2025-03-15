@@ -18,6 +18,7 @@ export default function Register() {
     setFormData({ ...formData, [name]: value });
   };
   const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
+  console.log(baseurl, "Register")
 
   const handleSubmit = async (e) => {
     e.preventDefault();

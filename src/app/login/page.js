@@ -14,7 +14,8 @@ export default function Login() {
     const navigateToHome = () => {
         router.push('/home');
     };
-    const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
+    const baseurl = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
+    console.log(baseurl,"Login");
 
     const handleSubmit = async (e) => {
         e.preventDefault();

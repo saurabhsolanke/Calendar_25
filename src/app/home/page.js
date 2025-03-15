@@ -17,6 +17,8 @@ export default function Home() {
   const [editedTaskText, setEditedTaskText] = useState('');
   const [token, setToken] = useState('');
   const BASE_URL1 = process.env.NEXT_PUBLIC_BASE_URL;
+  console.log(BASE_URL1, "base url");
+  
     
   useEffect(() => {
     // Safely access localStorage only on the client side

@@ -17,20 +17,37 @@ export default function Login() {
     const baseurl = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
     console.log(baseurl,"Login");
 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     try {
+    //         const response = await axios.post(baseurl + '/login', { username, password });
+
+    //         if (response.data.success) {
+    //             localStorage.setItem('token', response.data.token); // Save token
+    //             localStorage.setItem('username', response.data.username); // Save token
+    //             router.push('/home');
+    //         }
+    //     } catch (err) {
+    //         setError(err.response?.data?.message || 'Login failed');
+    //     }
+    // };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post(baseurl + '/login', { username, password });
-
+            const response = await axios.post(baseurl + '/login', 
+                { username, password },
+                { withCredentials: true } // ✅ Important for cookies/sessions
+            );
             if (response.data.success) {
-                localStorage.setItem('token', response.data.token); // Save token
-                localStorage.setItem('username', response.data.username); // Save token
+                localStorage.setItem('token', response.data.token);
                 router.push('/home');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Login failed');
         }
     };
+    
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">

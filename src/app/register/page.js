@@ -17,7 +17,7 @@ export default function Register() {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-  const baseurl = process.env.NEXT_PUBLIC_BASE_URL;
+  const baseurl = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
   console.log(baseurl, "Register")
 
   const handleSubmit = async (e) => {

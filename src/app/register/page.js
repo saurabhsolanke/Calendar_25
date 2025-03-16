@@ -12,6 +12,7 @@ export default function Register() {
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,7 +23,7 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setLoading(true);
     try {
       const response = await axios.post(baseurl + '/register', formData);
       console.log(formData);
@@ -33,6 +34,8 @@ export default function Register() {
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
       setMessage(''); // Clear any previous success message
+    }finally {
+      setLoading(false);
     }
   };
 
@@ -74,10 +77,10 @@ export default function Register() {
               Register
             </button>
           </form>
-          <button type='button' className="mt-8 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-            <a href="/login">
-              Login
-            </a>
+          <button type='button' className="mt-8 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            disabled={loading}>
+            {loading ? 'Loading...' : 'Login'}
+            <a href="/login" />
           </button>
           {message && <p className='mt-5 text-green-600'>{message}</p>}
           {error && <p className='mt-5 text-green-600'>{error}</p>}

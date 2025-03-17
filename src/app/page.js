@@ -1,8 +1,22 @@
+'use client';
 import Link from 'next/link';
 import Image from "next/image";
 import React from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigateToHome();
+    }
+  }, []);
+  const navigateToHome = () => {
+    router.push('/home');
+  };
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-gradient-to-r from-blue-500 to-purple-600 animate-gradient bg-[length:400%_400%]">
       <h1 className="text-4xl mt-16 font-bold mb-4 text-white text-center">Welcome to Calendar</h1> {/* Added a heading */}

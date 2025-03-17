@@ -1,8 +1,10 @@
 'use client'
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 // import { useRouter } from 'next/router';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css'; // Add this import
 
 
 export default function Login() {
@@ -12,37 +14,29 @@ export default function Login() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            console.log(token, "token" );
+            navigateToHome();
+        }
+    }, []); 
+
     const navigateToHome = () => {
         router.push('/home');
     };
     const baseurl = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
     console.log(baseurl,"Login");
 
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-    //     try {
-    //         const response = await axios.post(baseurl + '/login', { username, password });
-
-    //         if (response.data.success) {
-    //             localStorage.setItem('token', response.data.token); // Save token
-    //             localStorage.setItem('username', response.data.username); // Save token
-    //             router.push('/home');
-    //         }
-    //     } catch (err) {
-    //         setError(err.response?.data?.message || 'Login failed');
-    //     }
-    // };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await axios.post(baseurl + '/login', 
-                { username, password },
-                { withCredentials: true } // ✅ Important for cookies/sessions
-            );
+            const response = await axios.post(baseurl + '/login', { username, password },{ withCredentials: true });
             if (response.data.success) {
                 localStorage.setItem('token', response.data.token);
+                localStorage.setItem('username', response.data.username);
+                toast.success('User logged in successfully!');
                 router.push('/home');
             }
         } catch (err) {
@@ -54,7 +48,9 @@ export default function Login() {
     
 
     return (
+       
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
+             <ToastContainer /> 
             <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
                 <h3 className='text-center text-4xl font-extrabold text-gray-900'>Calendar 2025</h3>
                 <h2 className="text-center text-3xl font-extrabold text-gray-900">

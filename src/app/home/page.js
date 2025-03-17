@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import axios from 'axios';
 import { useRef } from 'react';
 import React from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 
 export default function Home() {
   const [calendarData, setCalendarData] = useState(null);
@@ -18,18 +19,20 @@ export default function Home() {
   const [token, setToken] = useState('');
   const BASE_URL1 = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
   console.log(BASE_URL1, "base url");
-    
-  useEffect(() => {
-    // Safely access localStorage only on the client side
-    if (typeof window !== 'undefined') {
-      setToken(localStorage.getItem('token') || '');
-    }
-  }, []);
+  const notify = () => toast("User not logged in!");
 
   useEffect(() => {
-    // Only run this effect if token is available
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token') || '';
+      const username = localStorage.getItem('username');
+      setToken(storedToken);
+
+      if (!storedToken && !username) {
+        notify();
+        window.location.href = '/login';
+      }
+    }
     if (!token) return;
-    
     const fetchCalendarData = async () => {
       try {
         const response = await fetch(BASE_URL1 + '/calendar', {
@@ -66,7 +69,7 @@ export default function Home() {
 
   const handleEditTask = async (taskId, newDescription) => {
     if (!token) return;
-    
+
     try {
       const response = await fetch(BASE_URL1 + '/calendar/edit', {
         method: 'PUT',
@@ -431,6 +434,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
+      {/* <ToastContainer /> */}
       <div className="p-4 lg:p-16"> {/* Adjust padding for mobile */}
         <div className='border-2 stroke-neutral-400 p-4 lg:p-6'> {/* Adjust padding for mobile */}
           {/* Navigation Controls */}
@@ -449,7 +453,26 @@ export default function Home() {
                 ←Month
               </button>
             </div>
+            {/* <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+              <rect x="10" y="20" width="100" height="90" rx="8" ry="8" fill="#ffffff" stroke="#2c3e50" stroke-width="2" />
 
+              <rect x="10" y="20" width="100" height="20" fill="#3498db" />
+
+              <text x="60" y="35" fill="#ffffff" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">
+                Calendar
+              </text>
+
+              <line x1="10" y1="40" x2="110" y2="40" stroke="#ecf0f1" stroke-width="1" />
+              <line x1="10" y1="55" x2="110" y2="55" stroke="#ecf0f1" stroke-width="1" />
+              <line x1="10" y1="70" x2="110" y2="70" stroke="#ecf0f1" stroke-width="1" />
+              <line x1="10" y1="85" x2="110" y2="85" stroke="#ecf0f1" stroke-width="1" />
+
+              <line x1="40" y1="20" x2="40" y2="110" stroke="#ecf0f1" stroke-width="1" />
+              <line x1="70" y1="20" x2="70" y2="110" stroke="#ecf0f1" stroke-width="1" />
+              <line x1="100" y1="20" x2="100" y2="110" stroke="#ecf0f1" stroke-width="1" />
+
+              <circle cx="85" cy="75" r="6" fill="#e74c3c" />
+            </svg> */}
             <div className="text-xl font-bold text-center">
               {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
             </div>

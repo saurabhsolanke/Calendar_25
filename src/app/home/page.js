@@ -6,6 +6,8 @@ import axios from 'axios';
 import { useRef } from 'react';
 import React from 'react';
 import { ToastContainer, toast } from 'react-toastify';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 export default function Home() {
   const [calendarData, setCalendarData] = useState(null);
@@ -18,10 +20,15 @@ export default function Home() {
   const [editedTaskText, setEditedTaskText] = useState('');
   const [token, setToken] = useState('');
   const BASE_URL1 = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
-  console.log(BASE_URL1, "base url");
   const notify = () => toast("User not logged in!");
+  const [loading, setLoading] = useState(false);
+  const [deletingTask, setDeletingTask] = useState(false);
+  const [addingTask, setAddTask] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState(null);
+
 
   useEffect(() => {
+    AOS.init();
     if (typeof window !== 'undefined') {
       const storedToken = localStorage.getItem('token') || '';
       const username = localStorage.getItem('username');
@@ -33,6 +40,7 @@ export default function Home() {
       }
     }
     if (!token) return;
+    setLoading(true);
     const fetchCalendarData = async () => {
       try {
         const response = await fetch(BASE_URL1 + '/calendar', {
@@ -61,6 +69,8 @@ export default function Home() {
         setCalendarData(transformedData);
       } catch (error) {
         console.error('Error fetching calendar data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -122,7 +132,8 @@ export default function Home() {
   const handleDeleteTask = async (taskId) => {
     if (!token) return;
     if (!window.confirm('Are you sure you want to delete this task?')) return;
-
+    setDeletingTaskId(taskId);
+    setDeletingTask(true);
     try {
       const response = await fetch(BASE_URL1 + '/calendar/delete', {
         method: 'DELETE',
@@ -165,13 +176,16 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error deleting task:', error);
+    } finally {
+      setDeletingTask(false);
+      setDeletingTaskId(null);
     }
   };
 
   const handleAddTask = async (taskText) => {
     if (!token) return;
     if (!taskText.trim()) return;
-
+    setAddTask(true);
     try {
       const response = await axios.post(BASE_URL1 + '/calendar/add',
         { date: selectedDate, task: taskText },
@@ -199,6 +213,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error adding task:', error);
+    } finally {
+      setAddTask(false);
     }
   };
 
@@ -259,9 +275,11 @@ export default function Home() {
           <div className="min-h-[40px]">
             {day}
             {hasTasks && (
-              <div className={'text-xs text-blue-600'}>
-                {calendarData[dayKey].length} <p className={` ${calendarData[dayKey].length > 0 ? 'hidden md:block' : 'hidden'}`}>
-                  task(s) </p>
+              <div className={'text-xs text-blue-600 flex justify-center'}>
+                {calendarData[dayKey].length}&nbsp;
+                <span className={` ${calendarData[dayKey].length > 0 ? 'hidden md:block' : 'hidden'}`}>
+                  task(s)
+                </span>
               </div>
             )}
           </div>
@@ -293,6 +311,7 @@ export default function Home() {
     const handleLocalEditTask = async (taskId, newDescription) => {
       if (!newDescription.trim()) return;
       await handleEditTask(taskId, newDescription);
+      setTaskInput(newDescription);
       setTimeout(() => {
         setLocalEditingTask(null);
         setLocalEditedTaskText('');
@@ -301,8 +320,8 @@ export default function Home() {
 
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg w-96">
+      <div data-aos="zoom-out-up" className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className={`bg-white p-6 rounded-lg w-96 transition-transform duration-300 transform ${isOpen ? 'scale-100' : 'scale-95'}`}>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">
               {selectedDate?.toLocaleDateString('default', {
@@ -369,12 +388,18 @@ export default function Home() {
                           >
                             ✏️
                           </button>
-                          <button
-                            onClick={() => handleDeleteTask(task._id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            🗑️
-                          </button>
+                          {deletingTaskId === task._id ?(
+                            <div className="flex justify-center items-center">
+                              <div className="loader"></div> {/* Loader component */}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleDeleteTask(task._id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              🗑️
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -405,11 +430,16 @@ export default function Home() {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={handleTaskSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                  Save Task
-                </button>
+                {addingTask ? (
+                  <button className="px-4 py-2 bg-blue-200 text-white rounded hover:bg-blue-600" disabled>
+                   <div className='loader'></div>
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleTaskSubmit} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Save Task
+                  </button>
+                )}
               </div>
             </div>
           ) : (
@@ -419,7 +449,7 @@ export default function Home() {
                   <button onClick={onClose} className="px-4 py-2 border rounded hover:bg-gray-100">
                     Close
                   </button>
-                  <button onClick={() => setShowAddTaskForm(true)} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <button onClick={() => {setShowAddTaskForm(true); setTaskInput('')}}  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                     Add Task
                   </button>
                 </>
@@ -435,25 +465,29 @@ export default function Home() {
     <>
       <Navbar />
       {/* <ToastContainer /> */}
-      <div className="p-4 lg:p-16"> {/* Adjust padding for mobile */}
-        <div className='border-2 stroke-neutral-400 p-4 lg:p-6'> {/* Adjust padding for mobile */}
-          {/* Navigation Controls */}
-          <div className="flex flex-col lg:flex-row justify-between items-center mb-4"> {/* Stack items on mobile */}
-            <div className="flex gap-2 mb-2 lg:mb-0"> {/* Add margin for mobile */}
-              <button
-                onClick={() => changeYear(-1)}
-                className="px-3 py-1 border rounded hover:bg-gray-100 bg-sky-500/50 transition duration-200"
-              >
-                ←Year
-              </button>
-              <button
-                onClick={() => changeMonth(-1)}
-                className="px-3 py-1 border rounded hover:bg-gray-100 bg-green-500/50 transition duration-200"
-              >
-                ←Month
-              </button>
-            </div>
-            {/* <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <div className="p-4 lg:p-16">
+        {loading ? (
+          <div className="flex justify-center items-center h-screen">
+            <div className="loader"></div>
+          </div>
+        ) : (
+          <div className='border-2 stroke-neutral-400 p-4 lg:p-6'>
+            <div className="flex flex-col lg:flex-row justify-between items-center mb-4">
+              <div className="flex gap-2 mb-2 lg:mb-0">
+                <button
+                  onClick={() => changeYear(-1)}
+                  className="px-3 py-1 border rounded hover:bg-gray-100 bg-sky-500/50 transition duration-200"
+                >
+                  ←Year
+                </button>
+                <button
+                  onClick={() => changeMonth(-1)}
+                  className="px-3 py-1 border rounded hover:bg-gray-100 bg-green-500/50 transition duration-200"
+                >
+                  ←Month
+                </button>
+              </div>
+              {/* <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <rect x="10" y="20" width="100" height="90" rx="8" ry="8" fill="#ffffff" stroke="#2c3e50" stroke-width="2" />
 
               <rect x="10" y="20" width="100" height="20" fill="#3498db" />
@@ -473,58 +507,59 @@ export default function Home() {
 
               <circle cx="85" cy="75" r="6" fill="#e74c3c" />
             </svg> */}
-            <div className="text-xl font-bold text-center">
-              {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
-            </div>
-
-            <div className="flex gap-2 mb-2 lg:mb-0">
-              <button
-                onClick={() => changeMonth(1)}
-                className="px-3 py-1 border rounded hover:bg-gray-100 bg-green-500/50 transition duration-200"
-              >
-                Month→
-              </button>
-              <button
-                onClick={() => changeYear(1)}
-                className="px-3 py-1 border rounded hover:bg-gray-100 bg-sky-500/50 transition duration-200"
-              >
-                Year→
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="text-center font-semibold">
-                {day}
+              <div className="text-xl font-bold text-center">
+                {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
               </div>
-            ))}
-          </div>
 
-          <div id="calendarDays" className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-5 lg:grid-cols-7 grid-rows-5 gap-2 text-center">
-            {renderCalendar()}
-          </div>
+              <div className="flex gap-2 mb-2 lg:mb-0">
+                <button
+                  onClick={() => changeMonth(1)}
+                  className="px-3 py-1 border rounded hover:bg-gray-100 bg-green-500/50 transition duration-200"
+                >
+                  Month→
+                </button>
+                <button
+                  onClick={() => changeYear(1)}
+                  className="px-3 py-1 border rounded hover:bg-gray-100 bg-sky-500/50 transition duration-200"
+                >
+                  Year→
+                </button>
+              </div>
+            </div>
 
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={() => setCurrentDate(new Date())}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200"
-            >
-              Today
-            </button>
+            <div className="grid grid-cols-7 gap-2 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <div key={day} className="text-center font-semibold">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div id="calendarDays" className="grid grid-cols-7 sm:grid-cols-7 md:grid-cols-5 lg:grid-cols-7 grid-rows-5 gap-2 text-center">
+              {renderCalendar()}
+            </div>
+
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => setCurrentDate(new Date())}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition duration-200"
+              >
+                Today
+              </button>
+            </div>
+            <DateModal
+              isOpen={isModalOpen}
+              onClose={() => {
+                setIsModalOpen(false);
+                setShowAddTaskForm(false);
+                setEditingTask(null);
+                setEditedTaskText('');
+              }}
+              selectedDate={selectedDate}
+              tasks={selectedDateTasks}
+            />
           </div>
-          <DateModal
-            isOpen={isModalOpen}
-            onClose={() => {
-              setIsModalOpen(false);
-              setShowAddTaskForm(false);
-              setEditingTask(null);
-              setEditedTaskText('');
-            }}
-            selectedDate={selectedDate}
-            tasks={selectedDateTasks}
-          />
-        </div>
+        )}
       </div>
     </>
   );

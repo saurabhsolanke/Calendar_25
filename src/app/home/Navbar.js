@@ -19,7 +19,7 @@ export default function Navbar() {
             <div className="flex items-center">
                 <div className="flex h-10 w-10 items-center text-lg font-bold text-gray-700 dark:text-zinc-500">
                     <img className="h-full w-full" src="/logo2.jpg" alt="" />
-                    <span className="px-1">Calendar</span>
+                    <span className="px-1">Daily planner</span>
                 </div>
                 <div className="flex w-full justify-end">
                     <button className="block lg:hidden" onClick={() => setIsOpen(!isOpen)}> {/* Toggle button */}

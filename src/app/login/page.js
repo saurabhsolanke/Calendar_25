@@ -26,7 +26,6 @@ export default function Login() {
         router.push('/home');
     };
     const baseurl = process.env.NEXT_PUBLIC_BASE_URL || 'https://two025planner.onrender.com';
-    console.log(baseurl,"Login");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -52,7 +51,7 @@ export default function Login() {
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
              <ToastContainer /> 
             <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
-                <h3 className='text-center text-4xl font-extrabold text-gray-900'>Calendar 2025</h3>
+                <h3 className='text-center text-4xl font-extrabold text-gray-900'>Daily planner 2025</h3>
                 <h2 className="text-center text-3xl font-extrabold text-gray-900">
                     Sign in to your account
                 </h2>
